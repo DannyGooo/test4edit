@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PurgeCSS Example</title>
+  <style>
+    /* This class is used */
+    .header {
+      background-color: #333;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* This class is used */
+    .content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* This class is used */
+    .button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* UNUSED - Will be removed by PurgeCSS */
+    .unused-sidebar {
+      width: 250px;
+      background-color: #f0f0f0;
+      padding: 15px;
+    }
+
+    /* UNUSED - Will be removed by PurgeCSS */
+    .unused-footer {
+      background-color: #222;
+      color: white;
+      text-align: center;
+      padding: 10px;
+    }
+
+    /* UNUSED - Will be removed by PurgeCSS */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* UNUSED - Will be removed by PurgeCSS */
+    .alert {
+      padding: 15px;
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Welcome to PurgeCSS Demo</h1>
+  </div>
+
+  <div class="content">
+    <p>This is an example HTML file with both used and unused CSS classes.</p>
+    <button class="button">Click Me</button>
+  </div>
+
+
+</body></html>
