@@ -90,21 +90,27 @@ export async function processHtmlFile(filePath, options = {}) {
     // Remove all existing style tags
     styleTags.remove();
 
-    // Ensure <head> element exists
-    let head = $('head');
-    if (head.length === 0) {
-      // No head element exists, create one
+    // Ensure <body> element exists
+    let body = $('body');
+    if (body.length === 0) {
+      // No body element exists, create one
       const html = $('html');
       if (html.length === 0) {
         // No html element either, wrap everything
         $('*').wrapAll('<html></html>');
       }
-      $('html').prepend('<head></head>');
-      head = $('head');
+      // Wrap existing content in body if it exists
+      const htmlContent = $('html').children();
+      if (htmlContent.length > 0) {
+        htmlContent.wrapAll('<body></body>');
+      } else {
+        $('html').append('<body></body>');
+      }
+      body = $('body');
     }
 
-    // Add the purged CSS as a single style tag in head
-    head.append(`<style>${purgedCss}</style>`);
+    // Add the purged CSS as a single style tag at the end of body
+    body.append(`<style>${purgedCss}</style>`);
 
     // Get the processed HTML
     let outputHtml = $.html();

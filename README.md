@@ -5,10 +5,11 @@ A Node.js script that transforms HTML files by processing their CSS through Purg
 ## Features
 
 - Processes inline `<style>` tags in HTML files
-- **Merges multiple `<style>` tags into a single tag in `<head>`**
-- **Moves styles from `<body>` to `<head>` for optimal rendering**
+- **Merges multiple `<style>` tags into a single tag**
+- **Places merged `<style>` at the end of `<body>` for deferred style loading**
 - Removes unused CSS based on actual HTML content
-- Creates `<head>` element if missing
+- Minifies HTML to single line (optional)
+- Creates `<body>` element if missing
 - Supports glob patterns for batch processing
 - **Processes HTML files inside tar archives** (extract, purge, re-archive)
 - Dry-run mode to preview changes
@@ -185,11 +186,12 @@ npm run purge-tar -- /path/to/tar/files
 3. **Merge CSS**: All CSS from multiple `<style>` tags is merged into a single block
 4. **Analyze Usage**: PurgeCSS analyzes which CSS rules are actually used in the HTML
 5. **Remove Unused CSS**: Unused CSS rules are removed
-6. **Ensure `<head>` exists**: Creates a `<head>` element if it doesn't exist
-7. **Move to `<head>`**: Places a single `<style>` tag with purged CSS in the `<head>` element
-8. **Report**: A detailed summary shows size reductions
+6. **Ensure `<body>` exists**: Creates a `<body>` element if it doesn't exist
+7. **Move to end of `<body>`**: Places a single `<style>` tag with purged CSS as the last element of `<body>`
+8. **Minify HTML**: Optionally collapses HTML to single line with minified CSS
+9. **Report**: A detailed summary shows size reductions
 
-**Key Feature**: All `<style>` tags (even those in `<body>`) are merged and moved to `<head>` for optimal browser rendering.
+**Key Feature**: All `<style>` tags are merged and placed at the end of `<body>` for deferred style loading, which can improve initial page render time.
 
 ## Example
 
@@ -217,31 +219,17 @@ npm run purge-tar -- /path/to/tar/files
 </html>
 ```
 
-### After
+### After (with minification)
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    .header { color: blue; }
-    .content { padding: 20px; }
-  </style>
-</head>
-<body>
-  <div class="header">Header</div>
-
-
-
-  <div class="content">Content</div>
-</body>
-</html>
+<!DOCTYPE html><html><head><title>...</title></head><body><div class="header">Header</div><div class="content">Content</div><style>.header{color:blue}.content{padding:20px}</style></body></html>
 ```
 
 **Changes**:
-- Both `<style>` tags merged into one in `<head>`
+- Both `<style>` tags merged into one
+- Moved to **end of `<body>`** (last element before `</body>`)
 - Unused classes (`.unused-class`, `.another-unused`) removed
-- `<style>` tag removed from `<body>`
+- HTML minified to single line with compressed CSS
 
 ### Output
 
