@@ -7,6 +7,192 @@ import { glob } from 'glob';
 import { resolve } from 'path';
 import posthtml from 'posthtml';
 import htmlnano from 'htmlnano';
+import postcss from 'postcss';
+import selectorParser from 'postcss-selector-parser';
+
+/**
+ * Reserved keywords to avoid in minified names (ad-blockers, HTML/CSS reserved words)
+ */
+const RESERVED_NAMES = new Set(['ad', 'ads', 'banner', 'if', 'do', 'for']);
+
+/**
+ * Generate a short name from an index (a-z, then aa-zz, then aaa-zzz, etc.)
+ * @param {number} index - The index to convert
+ * @returns {string} - The short name
+ */
+function generateShortName(index) {
+  let name = '';
+  let num = index;
+
+  // Determine length (1 char, 2 char, 3 char, etc.)
+  let length = 1;
+  let threshold = 26;
+
+  while (num >= threshold) {
+    num -= threshold;
+    length++;
+    threshold = Math.pow(26, length);
+  }
+
+  // Convert to base-26 letters
+  for (let i = 0; i < length; i++) {
+    name = String.fromCharCode(97 + (num % 26)) + name;
+    num = Math.floor(num / 26);
+  }
+
+  // Skip reserved names
+  if (RESERVED_NAMES.has(name)) {
+    return generateShortName(index + 1);
+  }
+
+  return name;
+}
+
+/**
+ * Extract all classes and IDs from HTML and CSS
+ * @param {Object} $ - Cheerio instance
+ * @param {string} css - CSS content
+ * @returns {Object} - { classes: Set, ids: Set }
+ */
+function extractClassesAndIds($, css) {
+  const classes = new Set();
+  const ids = new Set();
+
+  // Extract from HTML class attributes
+  $('[class]').each((i, elem) => {
+    const classAttr = $(elem).attr('class') || '';
+    classAttr.split(/\s+/).forEach(cls => {
+      if (cls.trim()) classes.add(cls.trim());
+    });
+  });
+
+  // Extract from HTML id attributes
+  $('[id]').each((i, elem) => {
+    const idAttr = $(elem).attr('id');
+    if (idAttr && idAttr.trim()) {
+      ids.add(idAttr.trim());
+    }
+  });
+
+  // Extract from CSS using regex (simple extraction for mapping)
+  // Class selectors
+  const classMatches = css.matchAll(/\.([a-zA-Z_][\w-]*)/g);
+  for (const match of classMatches) {
+    classes.add(match[1]);
+  }
+
+  // ID selectors
+  const idMatches = css.matchAll(/#([a-zA-Z_][\w-]*)/g);
+  for (const match of idMatches) {
+    ids.add(match[1]);
+  }
+
+  return { classes, ids };
+}
+
+/**
+ * Build mapping from original names to minified names
+ * @param {Set} names - Set of original names
+ * @param {Array} safelist - Names to exclude from minification
+ * @returns {Map} - Map of original -> minified names
+ */
+function buildMinificationMapping(names, safelist = []) {
+  const mapping = new Map();
+  const safelistSet = new Set(safelist);
+
+  // Filter out safelisted names and sort by length (longer names first for better compression)
+  const namesToMinify = Array.from(names)
+    .filter(name => !safelistSet.has(name))
+    .sort((a, b) => b.length - a.length);
+
+  // Generate short names
+  namesToMinify.forEach((name, index) => {
+    mapping.set(name, generateShortName(index));
+  });
+
+  return mapping;
+}
+
+/**
+ * Minify CSS selectors using postcss
+ * @param {string} css - CSS content
+ * @param {Map} classMapping - Class name mappings
+ * @param {Map} idMapping - ID name mappings
+ * @returns {Promise<string>} - Transformed CSS
+ */
+async function minifyCssSelectors(css, classMapping, idMapping) {
+  const result = await postcss([
+    root => {
+      root.walkRules(rule => {
+        rule.selector = selectorParser(selectors => {
+          selectors.walkClasses(classNode => {
+            const originalClass = classNode.value;
+            if (classMapping.has(originalClass)) {
+              classNode.value = classMapping.get(originalClass);
+            }
+          });
+
+          selectors.walkIds(idNode => {
+            const originalId = idNode.value;
+            if (idMapping.has(originalId)) {
+              idNode.value = idMapping.get(originalId);
+            }
+          });
+
+          // Handle attribute selectors like [class~="foo"]
+          selectors.walkAttributes(attrNode => {
+            if (attrNode.attribute === 'class' && attrNode.value) {
+              const cleanValue = attrNode.value.replace(/['"]/g, '');
+              if (classMapping.has(cleanValue)) {
+                const mappedValue = classMapping.get(cleanValue);
+                attrNode.setValue(mappedValue);
+              }
+            }
+            if (attrNode.attribute === 'id' && attrNode.value) {
+              const cleanValue = attrNode.value.replace(/['"]/g, '');
+              if (idMapping.has(cleanValue)) {
+                const mappedValue = idMapping.get(cleanValue);
+                attrNode.setValue(mappedValue);
+              }
+            }
+          });
+        }).processSync(rule.selector);
+      });
+    }
+  ]).process(css, { from: undefined });
+
+  return result.css;
+}
+
+/**
+ * Minify class and id attributes in HTML
+ * @param {Object} $ - Cheerio instance
+ * @param {Map} classMapping - Class name mappings
+ * @param {Map} idMapping - ID name mappings
+ */
+function minifyHtmlAttributes($, classMapping, idMapping) {
+  // Minify class attributes
+  $('[class]').each((i, elem) => {
+    const classAttr = $(elem).attr('class') || '';
+    const classes = classAttr.split(/\s+/).filter(cls => cls.trim());
+
+    const minifiedClasses = classes.map(cls => {
+      return classMapping.has(cls) ? classMapping.get(cls) : cls;
+    });
+
+    if (minifiedClasses.length > 0) {
+      $(elem).attr('class', minifiedClasses.join(' '));
+    }
+  });
+
+  // Minify id attributes
+  $('[id]').each((i, elem) => {
+    const idAttr = $(elem).attr('id');
+    if (idAttr && idMapping.has(idAttr)) {
+      $(elem).attr('id', idMapping.get(idAttr));
+    }
+  });
+}
 
 /**
  * Process a single HTML file through PurgeCSS
@@ -78,7 +264,7 @@ export async function processHtmlFile(filePath, options = {}) {
       }
     });
 
-    const purgedCss = purgeResult[0]?.css || '';
+    let purgedCss = purgeResult[0]?.css || '';
     const totalPurgedSize = purgedCss.length;
 
     // Calculate savings
@@ -86,6 +272,31 @@ export async function processHtmlFile(filePath, options = {}) {
     const percentageReduction = totalOriginalSize > 0
       ? ((bytesRemoved / totalOriginalSize) * 100).toFixed(2)
       : 0;
+
+    // === CLASS AND ID MINIFICATION ===
+    // Extract all classes and IDs from HTML and CSS
+    const { classes, ids } = extractClassesAndIds($, purgedCss);
+
+    // Build minification mappings (respecting safelist)
+    const classMapping = buildMinificationMapping(classes, safelist);
+    const idMapping = buildMinificationMapping(ids, safelist);
+
+    // Calculate original length of class/id names
+    const originalClassLength = Array.from(classes).join('').length;
+    const originalIdLength = Array.from(ids).join('').length;
+    const originalNamesLength = originalClassLength + originalIdLength;
+
+    // Minify CSS selectors
+    purgedCss = await minifyCssSelectors(purgedCss, classMapping, idMapping);
+
+    // Minify HTML class and id attributes
+    minifyHtmlAttributes($, classMapping, idMapping);
+
+    // Calculate minified length of class/id names
+    const minifiedClassLength = Array.from(classMapping.values()).join('').length;
+    const minifiedIdLength = Array.from(idMapping.values()).join('').length;
+    const minifiedNamesLength = minifiedClassLength + minifiedIdLength;
+    const nameBytesRemoved = originalNamesLength - minifiedNamesLength;
 
     // Remove all existing style tags
     styleTags.remove();
@@ -149,6 +360,9 @@ export async function processHtmlFile(filePath, options = {}) {
       purgedSize: totalPurgedSize,
       bytesRemoved,
       percentageReduction,
+      classesMinified: classMapping.size,
+      idsMinified: idMapping.size,
+      nameBytesRemoved,
       minified: minify,
       htmlBytesRemoved,
       dryRun
@@ -267,6 +481,10 @@ Examples:
         console.log(`✓ ${result.file}`);
         console.log(`  Styles processed: ${result.stylesProcessed}`);
         console.log(`  CSS: ${result.originalSize} → ${result.purgedSize} bytes (-${result.bytesRemoved} bytes, ${result.percentageReduction}%)`);
+        if (result.classesMinified > 0 || result.idsMinified > 0) {
+          console.log(`  Classes minified: ${result.classesMinified}, IDs minified: ${result.idsMinified}`);
+          console.log(`  Name reduction: -${result.nameBytesRemoved} bytes`);
+        }
         if (result.minified && result.htmlBytesRemoved > 0) {
           console.log(`  HTML minified: -${result.htmlBytesRemoved} bytes`);
         }

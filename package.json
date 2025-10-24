@@ -24,6 +24,8 @@
     "htmlnano": "^2.1.0",
     "posthtml": "^0.16.0",
     "cssnano": "^7.0.0",
-    "tiktoken": "^1.0.0"
+    "tiktoken": "^1.0.0",
+    "postcss": "^8.4.0",
+    "postcss-selector-parser": "^6.0.0"
   }
 }
