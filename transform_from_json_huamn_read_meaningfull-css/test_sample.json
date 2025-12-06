@@ -1,0 +1,54 @@
+[
+  {
+    "id": "test_readable_1",
+    "image": "images/test1.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a webpage with header and navigation"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html><html><head><style>.a{background-color:#fff;color:#000;padding:20px;margin-bottom:10px}.b{display:flex;gap:10px;justify-content:space-between}.c{background-color:#00f;color:white;padding:10px 20px;border-radius:5px}#d{font-size:16px;line-height:1.5}</style></head><body><div class=\"a\"><h1>Welcome to My Site</h1><nav class=\"b\"><a href=\"#\" class=\"c\">Home</a><a href=\"#\" class=\"c\">About</a><a href=\"#\" class=\"c\">Contact</a></nav></div><div id=\"d\"><p>This is the main content area of the webpage.</p></div></body></html>"
+      }
+    ]
+  },
+  {
+    "id": "test_readable_2",
+    "image": "images/test2.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a card component"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html><html><head><style>.a{border:1px solid #ddd;border-radius:8px;padding:20px;box-shadow:0 2px 4px rgba(0,0,0,0.1);max-width:400px;margin:20px auto}.b{color:#333;font-size:24px;margin-bottom:10px}.c{color:#666;line-height:1.6;margin-bottom:15px}.d{background-color:#007bff;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;font-size:16px}</style></head><body><div class=\"a\"><h2 class=\"b\">Card Title</h2><p class=\"c\">This is a beautiful card component with shadow effects and rounded corners. It's perfect for displaying content in an organized way.</p><button class=\"d\">Learn More</button></div></body></html>"
+      }
+    ]
+  },
+  {
+    "id": "test_readable_3",
+    "image": "images/test3.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a simple form"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;background-color:#f5f5f5;padding:20px}.a{background-color:white;padding:30px;border-radius:10px;max-width:500px;margin:0 auto;box-shadow:0 4px 6px rgba(0,0,0,0.1)}.b{color:#333;text-align:center;margin-bottom:20px}.c{margin-bottom:15px}.d{display:block;margin-bottom:5px;color:#555;font-weight:bold}.e{width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;font-size:14px;box-sizing:border-box}.f{width:100%;padding:12px;background-color:#28a745;color:white;border:none;border-radius:4px;font-size:16px;cursor:pointer;margin-top:10px}</style></head><body><form class=\"a\"><h2 class=\"b\">Contact Form</h2><div class=\"c\"><label class=\"d\" for=\"name\">Name:</label><input type=\"text\" id=\"name\" class=\"e\" placeholder=\"Enter your name\"></div><div class=\"c\"><label class=\"d\" for=\"email\">Email:</label><input type=\"email\" id=\"email\" class=\"e\" placeholder=\"Enter your email\"></div><div class=\"c\"><label class=\"d\" for=\"message\">Message:</label><textarea id=\"message\" class=\"e\" rows=\"4\" placeholder=\"Enter your message\"></textarea></div><button type=\"submit\" class=\"f\">Submit</button></form></body></html>"
+      }
+    ]
+  },
+  {
+    "id": "test_no_gpt_response",
+    "image": "images/test4.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create something"
+      }
+    ]
+  }
+]

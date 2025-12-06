@@ -1,0 +1,68 @@
+[
+  {
+    "id": "test_cssFirst_1",
+    "image": "images/test1.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a webpage with header and navigation (multiple style tags)"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html><html><head><style>.a{background-color:#fff;color:#000;padding:20px}</style></head><body><style>.b{display:flex;gap:10px;justify-content:space-between}</style><div class=\"a\"><h1>Welcome to My Site</h1><nav class=\"b\"><a href=\"#\" class=\"c\">Home</a><a href=\"#\" class=\"c\">About</a></nav></div><style>.c{background-color:#00f;color:white;padding:10px 20px;border-radius:5px}</style></body></html>"
+      }
+    ]
+  },
+  {
+    "id": "test_cssFirst_2",
+    "image": "images/test2.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a card with styles scattered"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html><html><head><style>.a{border:1px solid #ddd;border-radius:8px;padding:20px}</style></head><body><div class=\"a\"><style>.b{color:#333;font-size:24px;margin-bottom:10px}</style><h2 class=\"b\">Card Title</h2><p class=\"c\">Content here.</p><style>.c{color:#666;line-height:1.6}</style></div></body></html>"
+      }
+    ]
+  },
+  {
+    "id": "test_cssFirst_3",
+    "image": "images/test3.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Single style tag in head (already correct)"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html><html><head><style>.a{background-color:white;padding:30px}.b{color:#333;text-align:center}</style></head><body><div class=\"a\"><h2 class=\"b\">Title</h2></div></body></html>"
+      }
+    ]
+  },
+  {
+    "id": "test_no_gpt_response",
+    "image": "images/test4.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create something"
+      }
+    ]
+  },
+  {
+    "id": "test_no_html",
+    "image": "images/test5.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "What is CSS?"
+      },
+      {
+        "from": "gpt",
+        "value": "CSS stands for Cascading Style Sheets. It's used for styling web pages."
+      }
+    ]
+  }
+]

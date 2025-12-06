@@ -1,0 +1,19 @@
+{
+  "total_skipped": 2,
+  "skip_reasons": {
+    "no_gpt_response": 1,
+    "no_html_content": 1
+  },
+  "skipped_entries": [
+    {
+      "id": "test_no_gpt_response",
+      "reason": "no_gpt_response",
+      "message": "No GPT response found in conversations"
+    },
+    {
+      "id": "test_no_html",
+      "reason": "no_html_content",
+      "message": "No HTML content found in GPT response"
+    }
+  ]
+}

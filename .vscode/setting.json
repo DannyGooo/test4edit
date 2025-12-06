@@ -1,0 +1,17 @@
+{
+    "terminal.integrated.cwd": "${workspaceFolder}",
+
+  "terminal.integrated.profiles.linux": {
+    "Bash (repo-root)": {
+      "path": "/bin/bash",
+      "args": ["-lc", "cd ${workspaceFolder}; exec bash -i"],
+      "cwd": "${workspaceFolder}"
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "Bash (repo-root)",
+
+  "terminal.integrated.enablePersistentSessions": false,
+  "terminal.integrated.persistentSessionReviveProcess": "never",
+
+  "terminal.integrated.splitCwd": "initial"
+}

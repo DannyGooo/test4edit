@@ -17,15 +17,15 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "purgecss": "^7.0.0",
     "cheerio": "^1.0.0",
-    "glob": "^10.3.10",
-    "tar": "^7.0.0",
-    "htmlnano": "^2.1.0",
-    "posthtml": "^0.16.0",
     "cssnano": "^7.0.0",
-    "tiktoken": "^1.0.0",
+    "glob": "^10.3.10",
+    "htmlnano": "^2.1.0",
     "postcss": "^8.4.0",
-    "postcss-selector-parser": "^6.0.0"
+    "postcss-selector-parser": "^6.0.0",
+    "posthtml": "^0.16.0",
+    "purgecss": "^7.0.0",
+    "tar": "^7.0.0",
+    "tiktoken": "^1.0.0"
   }
 }

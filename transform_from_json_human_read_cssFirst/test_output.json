@@ -1,0 +1,68 @@
+[
+  {
+    "id": "test_cssFirst_1",
+    "image": "images/test1.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a webpage with header and navigation (multiple style tags)"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html>\n<html>\n <head>\n  <style>\n   .a{\n  background-color: #fff;\n  color: #000;\n  padding: 20px\n}\n\n.b{\n  display: flex;\n  gap: 10px;\n  justify-content: space-between\n}\n\n.c{\n  background-color: #00f;\n  color: white;\n  padding: 10px 20px;\n  border-radius: 5px\n}\n  </style>\n </head>\n <body>\n  <div class=\"a\">\n   <h1>\n    Welcome to My Site\n   </h1>\n   <nav class=\"b\">\n    <a class=\"c\" href=\"#\">\n     Home\n    </a>\n    <a class=\"c\" href=\"#\">\n     About\n    </a>\n   </nav>\n  </div>\n </body>\n</html>\n"
+      }
+    ]
+  },
+  {
+    "id": "test_cssFirst_2",
+    "image": "images/test2.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a card with styles scattered"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html>\n<html>\n <head>\n  <style>\n   .a{\n  border: 1px solid #ddd;\n  border-radius: 8px;\n  padding: 20px\n}\n\n.b{\n  color: #333;\n  font-size: 24px;\n  margin-bottom: 10px\n}\n\n.c{\n  color: #666;\n  line-height: 1.6\n}\n  </style>\n </head>\n <body>\n  <div class=\"a\">\n   <h2 class=\"b\">\n    Card Title\n   </h2>\n   <p class=\"c\">\n    Content here.\n   </p>\n  </div>\n </body>\n</html>\n"
+      }
+    ]
+  },
+  {
+    "id": "test_cssFirst_3",
+    "image": "images/test3.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Single style tag in head (already correct)"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html>\n<html>\n <head>\n  <style>\n   .a{\n  background-color: white;\n  padding: 30px\n}\n\n.b{\n  color: #333;\n  text-align: center\n}\n  </style>\n </head>\n <body>\n  <div class=\"a\">\n   <h2 class=\"b\">\n    Title\n   </h2>\n  </div>\n </body>\n</html>\n"
+      }
+    ]
+  },
+  {
+    "id": "test_no_gpt_response",
+    "image": "images/test4.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create something"
+      }
+    ]
+  },
+  {
+    "id": "test_no_html",
+    "image": "images/test5.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "What is CSS?"
+      },
+      {
+        "from": "gpt",
+        "value": "CSS stands for Cascading Style Sheets. It's used for styling web pages."
+      }
+    ]
+  }
+]

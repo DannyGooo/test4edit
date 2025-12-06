@@ -1,0 +1,13 @@
+{
+  "total_skipped": 1,
+  "skip_reasons": {
+    "no_gpt_response": 1
+  },
+  "skipped_entries": [
+    {
+      "id": "test_no_gpt_response",
+      "reason": "no_gpt_response",
+      "message": "No GPT response found in conversations"
+    }
+  ]
+}
