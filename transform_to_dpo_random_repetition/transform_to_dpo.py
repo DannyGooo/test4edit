@@ -449,6 +449,75 @@ def extract_css_selector(content: str, pos: int) -> Optional[str]:
     return closest_match.group(1).strip()
 
 
+def extract_css_rules_group(content: str, pos: int, num_rules: int = 2) -> Optional[str]:
+    """
+    Extract multiple consecutive CSS rules as a group.
+    Returns 2-3 CSS rules combined, e.g.:
+    ".class1 { color: red; }
+     .class2 { color: blue; }"
+    """
+    css_rule_pattern = re.compile(r'[^{}]+\{[^{}]*\}', re.DOTALL)
+
+    # Find all rules in the content
+    all_matches = list(css_rule_pattern.finditer(content))
+
+    if len(all_matches) < num_rules:
+        return None
+
+    # Find the rule closest to pos
+    closest_idx = 0
+    min_dist = float('inf')
+    for i, match in enumerate(all_matches):
+        dist = abs(match.start() - pos)
+        if dist < min_dist:
+            min_dist = dist
+            closest_idx = i
+
+    # Get num_rules consecutive rules starting from closest
+    # Make sure we don't go past the end
+    start_idx = min(closest_idx, len(all_matches) - num_rules)
+    start_idx = max(0, start_idx)
+
+    rules = []
+    for i in range(start_idx, min(start_idx + num_rules, len(all_matches))):
+        rules.append(all_matches[i].group().strip())
+
+    if len(rules) < 2:
+        return None
+
+    return '\n'.join(rules)
+
+
+def generate_css_multi_rule_loop(content: str, start_pos: int, target_length: int) -> str:
+    """
+    Generate loopy content by repeating multiple CSS rules together.
+    Example:
+        .class1 { color: red; }
+        .class2 { margin: 10px; }
+        .class1 { color: red; }
+        .class2 { margin: 10px; }
+    """
+    prefix = content[:start_pos]
+
+    # Randomly choose 2 or 3 rules to repeat together
+    num_rules = random.choice([2, 3])
+    rules_group = extract_css_rules_group(content, start_pos, num_rules)
+
+    if not rules_group:
+        # Fallback to single CSS rule loop
+        return generate_css_loop(content, start_pos, target_length)
+
+    remaining = target_length - len(prefix)
+    if remaining <= 0:
+        return prefix[:target_length]
+
+    rules_with_newline = rules_group + '\n'
+    repeat_count = get_random_rep_count(remaining, len(rules_with_newline))
+    suffix = rules_with_newline * repeat_count
+
+    return prefix + suffix
+
+
 def generate_css_property_loop(content: str, start_pos: int, target_length: int) -> str:
     """
     Generate loopy content by repeating a CSS property.
@@ -557,15 +626,15 @@ def generate_loopy_content(content: str) -> Tuple[str, str]:
     Returns:
         Tuple of (loopy_content, loop_type_used)
     """
-    # Generate random start percentage (5% to 75%)
-    start_pct = random.uniform(0.05, 0.75)
+    # Generate random start percentage (1% to 95%)
+    start_pct = random.uniform(0.01, 0.95)
     start_pos = int(len(content) * start_pct)
     target_length = len(content)
 
     # Check if we're in CSS region
     if is_in_css_region(content, start_pos):
-        # CSS region - 5 loop types
-        css_choices = ["css_rule", "css_property", "css_selector", "css_incrementing", "css_value"]
+        # CSS region - 6 loop types
+        css_choices = ["css_rule", "css_property", "css_selector", "css_incrementing", "css_value", "css_multi_rule"]
         loop_type = random.choice(css_choices)
 
         if loop_type == "css_rule":
@@ -576,8 +645,10 @@ def generate_loopy_content(content: str) -> Tuple[str, str]:
             result = generate_css_selector_loop(content, start_pos, target_length)
         elif loop_type == "css_incrementing":
             result = generate_css_incrementing_loop(content, start_pos, target_length)
-        else:  # css_value
+        elif loop_type == "css_value":
             result = generate_css_value_loop(content, start_pos, target_length)
+        else:  # css_multi_rule
+            result = generate_css_multi_rule_loop(content, start_pos, target_length)
     else:
         # HTML region - 7 loop types
         html_choices = ["char", "tag", "section", "incrementing", "closing_tag", "self_closing", "deeply_nested"]
@@ -714,6 +785,7 @@ def main():
         "css_selector": 0,
         "css_incrementing": 0,
         "css_value": 0,
+        "css_multi_rule": 0,
     }
 
     print("Processing entries...")
