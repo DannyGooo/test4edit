@@ -6,3 +6,4 @@ processed_dataset_csshtml
 processed_dataset_htmlcss
 processed_dataset
 venv/
+output/

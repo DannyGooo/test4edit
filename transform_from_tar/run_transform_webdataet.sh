@@ -13,14 +13,19 @@
 
 set -e  # Exit on error
 
+# If invoked with `sh`, re-exec under bash (this script uses bashisms like [[ ]]).
+if [ -z "${BASH_VERSION:-}" ]; then
+    exec bash "$0" "$@"
+fi
+
 # Script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Default paths
-INPUT_PATTERN="/home/len091/scratch/vision2code/dataset/coco_image/webdataset_chunk_*.tar"
-OUTPUT_JSON="/home/len091/scratch/vision2code/dataset/qwenVersionFinueCoCo/coco_webdataset.json"
-OUTPUT_IMAGE_DIR="/home/len091/scratch/vision2code/dataset/qwenVersionFinueCoCo/images"
+INPUT_PATTERN="/home/liu282/scratch3/projects/vision_to_code/dataset/my_enhanced/webdataset_chunk_*.tar"
+OUTPUT_JSON="/home/liu282/scratch3/projects/vision_to_code/dataset/qwenVersionFinueCoCo/coco_webdataset_20k.json"
+OUTPUT_IMAGE_DIR="/home/liu282/scratch3/projects/vision_to_code/dataset/qwenVersionFinueCoCo/images"
 
 # Parse arguments
 MAX_SAMPLES=""
@@ -89,7 +94,7 @@ fi
 echo "Starting transformation..."
 echo ""
 
-python -m src.dataset.transform_webdataset \
+python transform_from_tar/transform_webdataset.py \
     --input-pattern "$INPUT_PATTERN" \
     --output-json "$OUTPUT_JSON" \
     --output-image-dir "$OUTPUT_IMAGE_DIR" \

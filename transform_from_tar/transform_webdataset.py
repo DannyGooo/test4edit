@@ -20,7 +20,10 @@ Output format:
 """
 
 import os
-import ujson as json
+try:
+    import ujson as json  # type: ignore
+except ModuleNotFoundError:
+    import json
 import argparse
 import glob
 from pathlib import Path
@@ -31,6 +34,7 @@ from PIL import Image
 import io
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+import traceback
 
 
 def extract_id_from_key(key: str) -> str:
@@ -139,16 +143,22 @@ def process_webdataset(
     print(f"Batch size: {batch_size}")
     print(f"Parallel workers: {num_workers}")
 
-    # Create webdataset pipeline with optimizations
-    dataset = (
-        wds.WebDataset(tar_files, shardshuffle=False)
-        .decode("pil")  # Decode images to PIL format
-        .to_tuple("html", "png", "__key__")  # Extract html, png, and key
+    # Create webdataset pipeline.
+    #
+    # Important: webdataset will stop iteration on certain shard/sample errors unless a handler is set.
+    # Using warn_and_continue lets us skip bad samples/shards and continue through all tar files.
+    #
+    # Note: We intentionally do NOT decode images to PIL here. Most runs are I/O bound and we
+    # may skip saving images that already exist on disk; keeping `png` as bytes avoids wasted decode work.
+    dataset = wds.WebDataset(tar_files, shardshuffle=False, handler=wds.warn_and_continue).to_tuple(
+        "html", "png", "__key__", handler=wds.warn_and_continue
     )
 
     # Statistics tracking
     submitted_count = 0
     errors = []
+    dataset_errors = 0
+    skipped_existing_images = 0
 
     # Lock for thread-safe JSON writing
     write_lock = Lock()
@@ -181,29 +191,54 @@ def process_webdataset(
                     if isinstance(html_content, bytes):
                         html_content = html_content.decode('utf-8', errors='replace')
 
-                    # Submit image save task to thread pool
-                    future = executor.submit(save_image_worker, image, image_path, sample_id)
+                    # If the image already exists, do not re-export it.
+                    # Still emit the JSON sample pointing at the existing file.
+                    if os.path.isfile(image_path) and os.path.getsize(image_path) > 0:
+                        skipped_existing_images += 1
+                        json_entry = {
+                            "id": sample_id,
+                            "image": f"images/{image_filename}",
+                            "conversations": create_conversation(html_content),
+                        }
+                        with write_lock:
+                            json_file.write(json.dumps(json_entry, ensure_ascii=False) + '\n')
+                    else:
+                        # Submit image save task to thread pool
+                        future = executor.submit(save_image_worker, image, image_path, sample_id)
 
-                    # Store metadata for this future
-                    futures[future] = {
-                        "sample_id": sample_id,
-                        "image_filename": image_filename,
-                        "html_content": html_content
-                    }
+                        # Store metadata for this future
+                        futures[future] = {
+                            "sample_id": sample_id,
+                            "image_filename": image_filename,
+                            "html_content": html_content
+                        }
 
                     submitted_count += 1
 
-                    # Process completed futures in batches
+                    # Keep the futures backlog bounded. When we have enough queued work,
+                    # block until at least one completes, then drain all currently-done ones.
                     if len(futures) >= batch_size:
-                        _process_completed_futures(futures, json_file, write_lock, errors)
+                        _process_completed_futures(
+                            futures, json_file, write_lock, errors, wait_all=False, wait_for_one=True
+                        )
 
                 # Process any remaining futures
                 if futures:
                     _process_completed_futures(futures, json_file, write_lock, errors, wait_all=True)
 
+            except KeyboardInterrupt:
+                print("\nInterrupted by user (KeyboardInterrupt). Finalizing completed items...")
+                if futures:
+                    _process_completed_futures(futures, json_file, write_lock, errors, wait_all=True)
+                raise
             except Exception as e:
-                print(f"\nError during processing: {e}")
-                print(f"Submitted {submitted_count} samples before error")
+                dataset_errors += 1
+                print("\nFatal error during dataset iteration.")
+                print(f"  Exception: {type(e).__name__}: {e!r}")
+                print(f"  Submitted {submitted_count} samples before error")
+                print("  Traceback:")
+                print(traceback.format_exc())
+                raise
 
     # Convert JSONL temp file to JSON array format
     print(f"\nConverting to JSON array format...")
@@ -226,7 +261,11 @@ def process_webdataset(
     print(f"\n✓ Transformation complete!")
     print(f"  - Successfully processed: {sample_count} samples")
     print(f"  - Failed samples: {error_count}")
+    if dataset_errors:
+        print(f"  - Dataset iteration errors: {dataset_errors}")
     print(f"  - Total submitted: {submitted_count}")
+    print(f"  - Images already existed (skipped export): {skipped_existing_images}")
+    print(f"  - Images exported this run: {sample_count - skipped_existing_images}")
     print(f"  - Images saved to: {output_image_dir}")
     print(f"  - JSON saved to: {output_json_path}")
 
@@ -242,7 +281,14 @@ def process_webdataset(
     return sample_count
 
 
-def _process_completed_futures(futures: dict, json_file, write_lock: Lock, errors: list, wait_all: bool = False):
+def _process_completed_futures(
+    futures: dict,
+    json_file,
+    write_lock: Lock,
+    errors: list,
+    wait_all: bool = False,
+    wait_for_one: bool = False,
+):
     """
     Process completed futures from the thread pool.
 
@@ -257,12 +303,16 @@ def _process_completed_futures(futures: dict, json_file, write_lock: Lock, error
 
     if wait_all:
         # Wait for all remaining futures
-        for future in as_completed(futures.keys()):
+        for future in as_completed(list(futures.keys())):
             completed_futures.append(future)
     else:
-        # Only process already completed futures
+        # Optionally wait for at least one completion to avoid unbounded growth.
+        if wait_for_one and futures:
+            completed_futures.append(next(as_completed(list(futures.keys()))))
+
+        # Drain any other already-completed futures
         for future in list(futures.keys()):
-            if future.done():
+            if future.done() and future not in completed_futures:
                 completed_futures.append(future)
 
     for future in completed_futures:

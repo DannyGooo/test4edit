@@ -22,8 +22,8 @@ set -e  # Exit on error
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Default paths
-DEFAULT_INPUT="/home/len091/scratch/vision2code/dataset/qwenVersionFinueCoCo/coco_webdataset_human_read.json"
-DEFAULT_OUTPUT="/home/len091/scratch/vision2code/dataset/qwenVersionFinueCoCo/coco_webdataset_human_read_8000.json"
+DEFAULT_INPUT="/home/liu282/scratch3/projects/vision_to_code/dataset/qwenVersionFinueCoCo/coco_webdataset_20k.json"
+DEFAULT_OUTPUT="/home/liu282/scratch3/projects/vision_to_code/dataset/qwenVersionFinueCoCo/coco_webdataset_20k_8000.json"
 DEFAULT_TOKENIZER="qwen"
 DEFAULT_MAX_TOKENS="8000"
 
@@ -118,7 +118,7 @@ fi
 echo "Checking dependencies..."
 if ! python3 -c "import tiktoken" 2>/dev/null; then
     echo "⚠ Warning: tiktoken not found. Installing..."
-    pip install tiktoken
+    pip install --user tiktoken
     echo ""
 fi
 
@@ -126,7 +126,7 @@ fi
 if [[ "$TOKENIZER" == "qwen" ]]; then
     if ! python3 -c "import transformers" 2>/dev/null; then
         echo "⚠ Warning: transformers not found (required for Qwen tokenizer). Installing..."
-        pip install transformers
+        pip install --user transformers
         echo ""
     fi
 fi
