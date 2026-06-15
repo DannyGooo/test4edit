@@ -1,0 +1,30 @@
+[
+  {
+    "id": "test_compression_1",
+    "image": "images/test1.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a webpage with header and navigation"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html>\n<html>\n<head>\n<style>\n/* Main header styling */\n.header-container {\n  background-color: #ffffff;\n  color: #000000;\n  padding: 20px;\n  margin-bottom: 10px;\n}\n\n.navigation-menu {\n  display: flex;\n  gap: 10px;\n  justify-content: space-between;\n}\n\n.button-primary {\n  background-color: #0000ff;\n  color: white;\n  padding: 10px 20px;\n  border-radius: 5px;\n}\n\n.unused-class {\n  display: none;\n}\n\n#main-content {\n  font-size: 16px;\n  line-height: 1.5;\n}\n</style>\n</head>\n<body>\n<div class=\"header-container\">\n  <h1>Welcome to My Site</h1>\n  <nav class=\"navigation-menu\">\n    <a href=\"#\" class=\"button-primary\">Home</a>\n    <a href=\"#\" class=\"button-primary\">About</a>\n    <a href=\"#\" class=\"button-primary\">Contact</a>\n  </nav>\n</div>\n<div id=\"main-content\">\n  <p>This is the main content area of the webpage.</p>\n</div>\n</body>\n</html>"
+      }
+    ]
+  },
+  {
+    "id": "test_compression_2",
+    "image": "images/test2.png",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "Create a simple card"
+      },
+      {
+        "from": "gpt",
+        "value": "<!DOCTYPE html>\n<html>\n<head>\n<style>\n.tiny { color: red; }\n</style>\n</head>\n<body>\n<div class=\"tiny\">Small CSS for inlining test</div>\n</body>\n</html>"
+      }
+    ]
+  }
+]
